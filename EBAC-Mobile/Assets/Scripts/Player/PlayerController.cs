@@ -21,6 +21,9 @@ public class PlayerController : Singleton<PlayerController>
     [Header("Coin Setup")]
     public GameObject coinCollector;
 
+    [Header("Animation")]
+    public AnimatorManager animatorManager;
+
     [Header("Lerp")]
     public Transform target;
     public float lerpSpeed = 1f;
@@ -30,6 +33,7 @@ public class PlayerController : Singleton<PlayerController>
     private Vector3 _pos;
     private Vector3 _startPosition;
     private float _currentSpeed;
+    private float _baseSpeedAnimation = 0f;
     private void Start()
     {
         _startPosition = transform.position;
@@ -54,7 +58,11 @@ public class PlayerController : Singleton<PlayerController>
     {
         if (collision.transform.tag == compareTagEnemy)
         {
-            if (!invencible) EndGame();
+            if (!invencible)
+            {
+                MoveBack();
+                EndGame(AnimatorManager.AnimationType.DEATH);
+            }
         }
     }
 
@@ -66,16 +74,26 @@ public class PlayerController : Singleton<PlayerController>
         }
     }
 
-    private void EndGame()
+    private void EndGame(AnimatorManager.AnimationType type = AnimatorManager.AnimationType.IDLE)
     {
-        _canRun = false;
+
         endScreen.SetActive(true);
+        _canRun = false;
+        animatorManager.Play(type);
     }
 
     public void StartGame()
     {
-        _canRun = true;
+
         startScreen.SetActive(false);
+        _canRun = true;
+        animatorManager.Play(AnimatorManager.AnimationType.RUN, _currentSpeed / _baseSpeedAnimation);
+        
+    }
+
+    public void MoveBack()
+    {
+        transform.DOMoveZ(-1f, .3f).SetRelative();
     }
 
     #region POWERUPS
